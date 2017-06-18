@@ -1,0 +1,40 @@
+debug: false
+after_startup: ""
+before_shutdown: "echo 'add cleanup here'"
+project:
+  name: "corsair"
+  path: "/home/user/Development/experiments/corsair-mitm/"
+  environment: "development"
+commands:
+  - name: "configure"
+    command: ""
+  - name: "build"
+    command: ""
+  - name: "test"
+    command: ""
+  - name: "install"
+    command: ""
+  - name: "clean"
+    command: ""
+  - name: "package"
+    command: ""
+  - name: "benchmark"
+    command: ""
+  - name: "publish"
+    command: ""
+watch:
+  enabled: true
+  hooks:
+    - paths: ["/home/user/Development/experiments/corsair-mitm/src/corsair", "/home/user/Development/experiments/corsair-mitm/src/plugins"]
+      recursive: true
+      extensions: ["go", "html", "css", "js"]
+      command: "go build && ./corsair-mitm"
+    - paths: ["/home/user/Development/experiments/corsair-mitm/"]
+      recursive: false
+      extensions: ["go", "html", "css", "js"]
+      command: "go build && ./corsair-mitm"
+web_ui:
+  enabled: true
+  api_version: "1"
+  host: "localhost"
+  port: "8080"

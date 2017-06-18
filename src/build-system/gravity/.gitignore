@@ -1,0 +1,11 @@
+.swp
+.swo
+.db
+.bleve
+gravity
+
+build.config.sample
+src/github.com/
+src/gopkg.in/
+src/golang.org/
+

@@ -1,0 +1,21 @@
+working_path: "/home/user/Development/experiments/corsair-mitm/src/build-system/gravity/"
+debug: false
+database_path: "./database/data.db"
+after_startup: "export GOPATH=$(pwd) && go get"
+before_shutdown: "echo 'add cleanup here'"
+commands:
+  init:
+  build:
+  install:
+  package:
+web_ui:
+  enabled: true
+  api_version: "1"
+  host: "localhost"
+  port: "8080"
+watch:
+  enabled: true
+  path: "."
+  watched_paths: ["test", "test2"]
+  recursive: false
+  command: "go build && ./corsair-mitm"
