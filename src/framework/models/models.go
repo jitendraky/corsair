@@ -23,4 +23,7 @@ type Directive struct {
   Weight    string
 }
 
-
+type TLS struct {
+  CAUrl     string
+  Email     string
+}

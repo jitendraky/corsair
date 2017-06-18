@@ -1,5 +1,12 @@
 package main
 
+import (
+  "runtime"
+  "strings"
+  "strconv"
+  "errors"
+)
+
 func SetMaximumCPU(cpu int){
 	// Set CPU cap
 	err := setCPU(cpu)

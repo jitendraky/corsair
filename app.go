@@ -8,9 +8,6 @@ import (
 	"log"
 	"os"
   "os/exec"
-	//"runtime"
-	//"strconv"
-	//"strings"
 
 	//"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/xenolf/lego/acme"
@@ -19,6 +16,7 @@ import (
   // ## Corsair Framework ##
   "framework/version"
   "framework/config"
+  "framework/models"
   "framework/database/memory"
 
   // ## *Library Defined Plugins* ##
@@ -35,32 +33,28 @@ import (
 
 type Application struct {
   Name              string
-  Input             corsair.Input
-  ConfigPath        string
+  Instance          corsair.Instance
   Config            config.State
+  ConfigPath        string
+  WorkingPath       string
+  Build             models.Build
+  TLS               models.TLS
+  Input             corsair.Input
   MemoryDB          *memory.DB
   Process           *exec.Cmd
   MaxCPU            string
   PIDFilePath       string
   LogFilePath       string
   Event             chan string
-  Flags struct{
-    Quiet           string
-	  ConfigFile      string
-	  MaxCPU          string
-	  LogPath         string
-    PIDPath         string
-  }
 }
 
 func (self *Application) flagsAndCommands(){
   args           := cli.New("corsair", "Corsair application framework")
-  Quiet          :=  args.Flag("quiet", "List installed plugins, not necessarily actived plugins.").Bool()
-  ConfigFile     :=  args.Flag("config", "Corsairfile to load, default location is the current working directory.").String()
-  MaxCPU         :=  args.Flag("cpu", "Maximum CPU allowed for the Corsair application process.").Default("100%").String()
-  LogPath        :=  args.Flag("log", "Path for logfile, default is std.out.").String()
-  PIDPath        :=  args.Flag("pid", "Path for PIDfile.").String()
-
+  quiet          :=  args.Flag("quiet", "List installed plugins, not necessarily actived plugins.").Bool()
+  configPath     :=  args.Flag("config", "Corsairfile to load, default location is the current working directory.").String()
+  maxCPU         :=  args.Flag("cpu", "Maximum CPU allowed for the Corsair application process.").Default("100%").String()
+  logPath        :=  args.Flag("log", "Path for logfile, default is std.out.").String()
+  pidPath        :=  args.Flag("pid", "Path for PIDfile.").String()
   // TODO: Commands should be in a app-cli executable, and the daemon should be in a appd executable
   plugins        :=  args.Command("plugins", "List installed plugins, not necessarily actived plugins.")
   pluginsAction  :=  plugins.Arg("action", "Available actions on all plugins include: list, update, install.")
@@ -76,8 +70,23 @@ func (self *Application) flagsAndCommands(){
     self.printBanner()
     os.Exit(0)
   }
+  if *configPath != "" {
+    self.ConfigPath = *configPath
+  }
+  if *logPath != "" {
+    self.Config.LogPath = *logPath
+  }
+  if *pidPath != "" {
+    self.Config.PIDPath = *pidPath
+  }
+  if *maxCPU != "" {
+    self.Config.MaxCPU = *maxCPU
+  }
+  if *quiet {
+    self.Config.Quiet = *quiet
+  }
 
-  switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+  switch cli.MustParse(args.Parse(os.Args[1:])) {
   case plugins.FullCommand():
 		fmt.Println(corsair.DescribePlugins())
 		os.Exit(0)
@@ -117,21 +126,20 @@ func (self *Application)printBanner() {
 }
 
 func main() {
-  //
 	corsair.TrapSignals()
-	corsair.RegisterCorsairfileLoader("flag", corsair.LoaderFunc(confLoader))
-	corsair.SetDefaultCorsairfileLoader("default", corsair.LoaderFunc(defaultLoader))
-  //
+	//corsair.RegisterCorsairfileLoader("flag", corsair.LoaderFunc(confLoader))
+	//corsair.SetDefaultCorsairfileLoader("default", corsair.LoaderFunc(defaultLoader))
+  workingPath, _ := os.Executable()
   app := Application{
     Name:             "Corsair",
-    WorkingDirectory: os.Executable(),
-    Config:           config.Load(os.Executable()+"corsair.yaml"),
+    WorkingPath:      workingPath,
+    Config:           config.Load(workingPath+"corsair.yaml"),
     MemoryDB:         memory.Open(":memory:"),
-    TLS: TLS{
+    TLS:  models.TLS{
       CAUrl: "https://acme-v01.api.letsencrypt.org/directory",
       Email: "Default ACME CA account email address",
     },
-    Build: Build{
+    Build: models.Build{
       Version: version.Version{Major: 0, Minor: 1, Patch: 0},
       Development: true,
     },
@@ -141,16 +149,10 @@ func main() {
 
   // TODO: This does not seem right at all.
 	acme.UserAgent = app.Config.Server.UserAgent
-
 	// Executes Startup events
 	corsair.EmitEvent(corsair.StartupEvent, nil)
 
-	// Get Corsairfile inputA
-  if app.Flags.ConfigPath != "" {
-	  corsairfileinput = corsair.LoadCorsairfile(app.Config.serverType)
-  } else if app.Config.ConfigPath {
-	  corsairfileinput = corsair.LoadCorsairfile(app.Config.serverType)
-  }
+	app.Input = corsair.LoadCorsairfile(app.Config.Server.ServerType)
 	// Start your engines
 	instance, err := corsair.Start(corsairfileinput)
 	if err != nil {
@@ -160,5 +162,4 @@ func main() {
 	// Twiddle your thumbs
 	instance.Wait()
 }
-
 
