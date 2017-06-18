@@ -1,29 +1,21 @@
 package main
 
 import (
-	//"errors"
 	"fmt"
-  //"time"
-	//"io/ioutil"
 	"log"
 	"os"
   "os/exec"
-
 	//"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/xenolf/lego/acme"
   cli "gopkg.in/alecthomas/kingpin.v2"
-
   // ## Corsair Framework ##
-  "framework/version"
-  "framework/config"
-  "framework/models"
-  "framework/database/memory"
-
-  // ## *Library Defined Plugins* ##
+  "corsair/config"
+  "corsair/config/version"
+  "corsair/models"
+  "corsair/database/memory"
 	"corsair/corsair"
-	_ "corsair/corsairhttp"
-	"corsair/corsairtls"
-
+	_ "corsair/network/http"
+	"corsair/network/tls"
   // ## *User Defined Plugins* ##
   // ## Include plugins here, with the special
   // ## character '_' ifront of the imported library.
@@ -146,13 +138,11 @@ func main() {
   }
   app.printBanner()
 	app.flagsAndCommands()
-
-  // TODO: This does not seem right at all.
 	acme.UserAgent = app.Config.Server.UserAgent
+
 	// Executes Startup events
 	corsair.EmitEvent(corsair.StartupEvent, nil)
-
-	app.Input = corsair.LoadCorsairfile(app.Config.Server.ServerType)
+	app.Input = config.LoadCorsairfile(app.Config.Server.ServerType)
 	// Start your engines
 	instance, err := corsair.Start(corsairfileinput)
 	if err != nil {
