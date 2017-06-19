@@ -5,7 +5,7 @@ import (
   "fmt"
 
 	"corsair/corsair"
-	"corsair/corsairhttp/httpserver"
+	"corsair/network/http/httpserver"
 )
 
 // ## Boilerplate
