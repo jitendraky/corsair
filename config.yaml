@@ -1,26 +1,25 @@
-debug: false
+verbosity: 1
 quiet: false
 max_cpu: "100%"
 log_path: "./corsair.all.log"
 pid_path: "./corsair.pid"
-server:
-  server_type: "http"
-  user_agent: "nginx"
+server_type: "http"
+server_token: "nginx"
 databases:
   memory_database:
     enabled: true
 plugins:
   - name: "corsair-search"
+    enabled: true
     import_path: "plugins/corsair-search"
     repository: ""
-    enabled: true
     directive:
       name: "search"
       weight: 9000
   - name: "boilerplate"
+    enabled: true
     import_path: "plugins/boilerplate"
     repository: ""
-    enabled: true
     directive:
       name: "boilerplate"
       weight: 9999
